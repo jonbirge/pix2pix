@@ -1,23 +1,25 @@
 Pix2Pix
 ======================
 
-:star: Star this project on GitHub — it helps!
-
 [Pix2Pix](https://arxiv.org/abs/1609.04802) is an example of `image-to-image` translation GAN.
 
-### Install
-```
-git clone https://github.com/akanametov/pix2pix
-cd ./pix2pix
-```
+### Python Dependencies
+
+- torch
+- torchvision
+- progress
+- tqvm
 
 ### Usage
+
 #### Datasets
-This project allows to train Pix2Pix GAN on three datasets:
+This project includes three datasets:
+
 - **Cityscapes**
 - **Facades**
-- and **Maps**
-,so that each of them is going to downloaded automatically by following:
+- **Maps**
+
+Each of them can be downloaded automatically by following:
 ```python
 from dataset import Cityscapes, Facades, Maps
 
@@ -27,6 +29,7 @@ dataset = Facades(root='.',
                   mode='train',
                   direction='B2A')
 ```
+
 #### Transforms
 For simple conversion of imageA and imageB from `PIL.Image` to `torch.Tensor` use `dataset.transforms`:
 ```python
@@ -53,32 +56,6 @@ T.ToImage() # to convert torch.Tensor to PIL.Image
 T.DeNormalize(mean=[..., ..., ...],
                std=[..., ..., ...])])
 ```
-
-#### Training
-
-To train Pix2Pix on one of available datasets use `train.py`:
-```
-./pix2pix python train.py [--epochs EPOCHS] [--dataset DATASET] [--batch_size BATCH_SIZE] [--lr LR]
-
-Train Pix2Pix
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --epochs EPOCHS       Number of epochs
-  --dataset DATASET     Name of the dataset: ['facades', 'maps', 'cityscapes']
-  --batch_size BATCH_SIZE
-                        Size of the batches
-  --lr LR               Adams learning rate
-```
-
-#### Results
-**Facades:**
-
-<a><img src="assets/facades.jpg" align="center" height="600px" width="500px"/></a>
-
-**Maps**
-
-<a><img src="assets/maps.jpg" align="center" height="600px" width="500px"/></a>
 
 ## License
 
