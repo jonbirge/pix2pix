@@ -2,55 +2,54 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 import time
-import argparse
 from progress.bar import IncrementalBar
 
-from dataset import Cityscapes, Facades, Maps
+# from dataset import Cityscapes, Facades, Maps
+from dataset import Maps
 from dataset import transforms as T
 from gan.generator import UnetGenerator
 from gan.discriminator import ConditionalDiscriminator
 from gan.criterion import GeneratorLoss, DiscriminatorLoss
 from gan.utils import Logger, initialize_weights
 
-parser = argparse.ArgumentParser(prog = 'top', description='Train Pix2Pix')
-parser.add_argument("--epochs", type=int, default=200, help="Number of epochs")
-parser.add_argument("--dataset", type=str, default="facades", help="Name of the dataset: ['facades', 'maps', 'cityscapes']")
-parser.add_argument("--batch_size", type=int, default=1, help="Size of the batches")
-parser.add_argument("--lr", type=float, default=0.0002, help="Adams learning rate")
-args = parser.parse_args()
+epochs = 200
+batch_size = 8  # default = 1
+adam_lr = 0.0002
+dataset_path = 'maps'
 
-device = ('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
 transforms = T.Compose([T.Resize((256,256)),
                         T.ToTensor(),
                         T.Normalize(mean=[0.5, 0.5, 0.5],
                                      std=[0.5, 0.5, 0.5])])
+
 # models
 print('Defining models!')
 generator = UnetGenerator().to(device)
 discriminator = ConditionalDiscriminator().to(device)
+
 # optimizers
-g_optimizer = torch.optim.Adam(generator.parameters(), lr=args.lr, betas=(0.5, 0.999))
-d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=args.lr, betas=(0.5, 0.999))
+g_optimizer = torch.optim.Adam(generator.parameters(), lr=adam_lr, betas=(0.5, 0.999))
+d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=adam_lr, betas=(0.5, 0.999))
+
 # loss functions
 g_criterion = GeneratorLoss(alpha=100)
 d_criterion = DiscriminatorLoss()
+
 # dataset
-print(f'Downloading "{args.dataset.upper()}" dataset!')
-if args.dataset=='cityscapes':
-    dataset = Cityscapes(root='.', transform=transforms, download=True, mode='train')
-elif args.dataset=='maps':
-    dataset = Maps(root='.', transform=transforms, download=True, mode='train')
-else:
-    dataset = Facades(root='.', transform=transforms, download=True, mode='train')
-dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
-print('Start of training process!')
-logger = Logger(filename=args.dataset)
-for epoch in range(args.epochs):
+print(f'Downloading dataset...')
+dataset = Maps(root='.', transform=transforms, download=True, mode='train')
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+# training
+print(f'Training with {device}...')
+logger = Logger(filename=dataset_path)
+for epoch in range(epochs):
     ge_loss=0.
     de_loss=0.
     start = time.time()
-    bar = IncrementalBar(f'[Epoch {epoch+1}/{args.epochs}]', max=len(dataloader))
+    bar = IncrementalBar(f'[Epoch {epoch+1}/{epochs}]', max=len(dataloader))
     for x, real in dataloader:
         x = x.to(device)
         real = real.to(device)
@@ -90,6 +89,6 @@ for epoch in range(args.epochs):
     logger.add_scalar('discriminator_loss', d_loss, epoch+1)
     logger.save_weights(generator.state_dict(), 'generator')
     logger.save_weights(discriminator.state_dict(), 'discriminator')
-    print("[Epoch %d/%d] [G loss: %.3f] [D loss: %.3f] ETA: %.3fs" % (epoch+1, args.epochs, g_loss, d_loss, tm))
+    print("[Epoch %d/%d] [G loss: %.3f] [D loss: %.3f] ET: %.3fs" % (epoch+1, epochs, g_loss, d_loss, tm))
 logger.close()
 print('End of training process!')
