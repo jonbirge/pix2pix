@@ -1,3 +1,5 @@
 .venv/
 maps/
 runs/
+__pycache__/
+maps.zip

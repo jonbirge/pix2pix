@@ -8,7 +8,7 @@ Pix2Pix
 - torch
 - torchvision
 - progress
-- tqvm
+- tqdm
 
 ### Usage
 
