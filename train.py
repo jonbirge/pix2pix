@@ -25,7 +25,7 @@ transforms = T.Compose([T.Resize((256,256)),
                                      std=[0.5, 0.5, 0.5])])
 
 # models
-print('Defining models!')
+print('Defining models...')
 generator = UnetGenerator().to(device)
 discriminator = ConditionalDiscriminator().to(device)
 
